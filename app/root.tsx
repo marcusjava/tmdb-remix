@@ -9,6 +9,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
+import { Header } from "./components/Header";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -35,7 +36,7 @@ function Document({ children }: any) {
         <Meta />
         <Links />
       </head>
-      <body style={{ margin: "0 2.5vw" }}>
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -53,6 +54,7 @@ export function Layout({ children }: any) {
     Examples of components to be added here: Toolbar/Navbar, Footer and etc...
     */
     <>
+      <Header />
       <Global styles={GlobalStyles} />
       {children}
     </>
