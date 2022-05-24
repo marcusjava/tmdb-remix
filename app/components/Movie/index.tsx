@@ -24,7 +24,7 @@ export const Movie = ({ data }: Props) => {
   const { id, title, poster_path, vote_average } = data;
   return (
     <Container>
-      <Link to="/home">
+      <Link to={`/home/movie/${id}`}>
         <Thumbnail
           src={
             poster_path

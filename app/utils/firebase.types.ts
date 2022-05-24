@@ -9,6 +9,11 @@ export interface SignInProps {
   password: string;
 }
 
+export type Genres = {
+  id: number;
+  name: string;
+};
+
 export interface Movie {
   id: string;
   docId?: string;
@@ -26,6 +31,7 @@ export interface Movie {
   adult: boolean;
   backdrop_path: string;
   genre_ids: [number];
+  genres: Genres[];
 }
 
 export interface User {
