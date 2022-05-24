@@ -10,6 +10,7 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
+import styled from "@emotion/styled";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -56,7 +57,7 @@ export function Layout({ children }: any) {
     <>
       <Header />
       <Global styles={GlobalStyles} />
-      {children}
+      <main>{children}</main>
     </>
   );
 }
