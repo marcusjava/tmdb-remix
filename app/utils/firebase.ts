@@ -2,6 +2,7 @@ import firebase from "firebase";
 import "firebase/firestore";
 import "firebase/auth";
 import type { Movie, SignUpProps, User } from "./firebase.types";
+import bcrypt from "bcryptjs";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -12,7 +13,8 @@ const firebaseConfig = {
   appId: "1:232551473309:web:338ecedc752df1b5947474",
 };
 
-firebase.initializeApp(firebaseConfig);
+console.log("INICIANDO FIREBASE");
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
 export const auth = firebase.auth();
 
@@ -26,8 +28,12 @@ const converter = <T>() => ({
     snap.data() as T,
 });
 
-export const createUserProfileDocument = async (user: User, data: any) => {
+export const createUserProfileDocument = async (
+  data: any,
+  user: User | null
+) => {
   if (!user) return;
+
   const userRef = firestore.doc(`users/${user.uid}`);
   const snapshot = await userRef.get();
   if (!snapshot.exists) {
@@ -45,6 +51,7 @@ export const createUserProfileDocument = async (user: User, data: any) => {
       console.log("error while creating user" + error.message);
     }
   }
+
   return userRef;
 };
 
@@ -101,10 +108,10 @@ export const getMoviesDocs = async (userId: string) => {
 };
 
 export const signUp = async ({ email, password, displayName }: SignUpProps) => {
+  //const passwordHash = await bcrypt.hash(password, 10);
   const { user } = await auth.createUserWithEmailAndPassword(email, password);
-  if (user) {
-    await createUserProfileDocument(user, { displayName });
-  }
+  return await createUserProfileDocument({ displayName }, user);
+  //'auth/email-already-in-use'
 };
 
 export default firebase;

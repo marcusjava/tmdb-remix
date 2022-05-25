@@ -1,6 +1,4 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { auth } from "./firebase";
-import type { SignUpProps, SignInProps } from "./firebase.types";
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {

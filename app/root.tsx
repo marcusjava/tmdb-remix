@@ -10,7 +10,7 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import styled from "@emotion/styled";
+import { auth } from "./utils/firebase";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
