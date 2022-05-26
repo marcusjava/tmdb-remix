@@ -4,7 +4,10 @@ import { IconContext } from "react-icons";
 import { Container, ItemLink, ItemsContainer, ItemText } from "./styles/header";
 import { Link } from "@remix-run/react";
 
-export const Header = () => {
+type Props = {
+  currentUser?: string;
+};
+export const Header = ({ currentUser }: Props) => {
   return (
     <Container>
       <Link to="/home">
@@ -15,12 +18,17 @@ export const Header = () => {
         </IconContext.Provider>
       </Link>
       <ItemsContainer>
-        <ItemText>
-          Seja bem vindo Marcus
-          <IconContext.Provider value={{ style: { fontSize: 25 } }}>
-            <BsDoorClosedFill data-testid="logout" />
-          </IconContext.Provider>{" "}
-        </ItemText>
+        <ItemLink to="/home/signin">Entrar</ItemLink>
+        <ItemLink to="/home/signup">Registrar</ItemLink>
+
+        {currentUser ? (
+          <>
+            <ItemText>Seja bem vindo {currentUser}</ItemText>
+            <IconContext.Provider value={{ style: { fontSize: 25 } }}>
+              <BsDoorClosedFill data-testid="logout" />
+            </IconContext.Provider>
+          </>
+        ) : null}
       </ItemsContainer>
     </Container>
   );

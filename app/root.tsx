@@ -1,4 +1,5 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Global } from "@emotion/react";
 import {
   Links,
@@ -7,16 +8,27 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { auth } from "./utils/firebase";
+import { auth, getCurrentUser } from "./utils/firebase";
+import { getAccessToken } from "./utils/session.server";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "New Remix App",
   viewport: "width=device-width,initial-scale=1",
 });
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const token = await getAccessToken(request);
+
+  if (!token) return null;
+  return {
+    currentUser: auth.currentUser?.displayName,
+  };
+};
 
 export default function App() {
   return (
@@ -48,6 +60,8 @@ function Document({ children }: any) {
 }
 
 export function Layout({ children }: any) {
+  const data = useLoaderData();
+
   return (
     /* 
     It is possible to define the Default Layout here. 
@@ -55,7 +69,7 @@ export function Layout({ children }: any) {
     Examples of components to be added here: Toolbar/Navbar, Footer and etc...
     */
     <>
-      <Header />
+      <Header currentUser={data?.currentUser} />
       <Global styles={GlobalStyles} />
       <main>{children}</main>
     </>

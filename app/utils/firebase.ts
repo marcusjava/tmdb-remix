@@ -110,6 +110,7 @@ export const getMoviesDocs = async (userId: string) => {
 export const signUp = async ({ email, password, displayName }: SignUpProps) => {
   //const passwordHash = await bcrypt.hash(password, 10);
   const { user } = await auth.createUserWithEmailAndPassword(email, password);
+  await auth.currentUser?.updateProfile({ displayName: displayName });
   return await createUserProfileDocument({ displayName }, user);
   //'auth/email-already-in-use'
 };

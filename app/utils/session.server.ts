@@ -20,9 +20,9 @@ const storage = createCookieSessionStorage({
   },
 });
 
-export async function createUserSession(userId: string, redirectTo: string) {
+export async function createUserSession(token: string, redirectTo: string) {
   const session = await storage.getSession();
-  session.set("access-token", userId);
+  session.set("access-token", token);
   return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
@@ -34,19 +34,19 @@ function getUserSession(request: Request) {
   return storage.getSession(request.headers.get("Cookie"));
 }
 
-export async function getUserId(request: Request) {
+export async function getAccessToken(request: Request) {
   const session = await getUserSession(request);
-  const userId = session.get("userId");
-  if (!userId || typeof userId !== "string") return null;
-  return userId;
+  const token = session.get("access-token");
+  if (!token || typeof token !== "string") return null;
+  return token;
 }
 
-export async function requireUserId(
+export async function requireAccessToken(
   request: Request,
   redirectTo: string = new URL(request.url).pathname
 ) {
   const session = await getUserSession(request);
-  const userId = session.get("userId");
+  const userId = session.get("access-token");
   if (!userId || typeof userId !== "string") {
     console.log("user not logged!");
     const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
