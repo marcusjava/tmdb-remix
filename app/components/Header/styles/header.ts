@@ -34,3 +34,11 @@ export const ItemText = styled.p`
   font-size: 20px;
   cursor: pointer;
 `;
+
+export const Logout = styled.button`
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+`;

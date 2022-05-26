@@ -30,6 +30,15 @@ export async function createUserSession(token: string, redirectTo: string) {
   });
 }
 
+export async function logout(request: Request) {
+  const session = await getUserSession(request);
+  return redirect("/home", {
+    headers: {
+      "Set-Cookie": await storage.destroySession(session),
+    },
+  });
+}
+
 function getUserSession(request: Request) {
   return storage.getSession(request.headers.get("Cookie"));
 }

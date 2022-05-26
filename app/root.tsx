@@ -33,6 +33,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function App() {
   return (
     <Document>
+      <Global styles={GlobalStyles} />
       <Layout>
         <Outlet />
       </Layout>
@@ -70,7 +71,6 @@ export function Layout({ children }: any) {
     */
     <>
       <Header currentUser={data?.currentUser} />
-      <Global styles={GlobalStyles} />
       <main>{children}</main>
     </>
   );
