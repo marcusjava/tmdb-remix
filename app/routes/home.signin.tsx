@@ -6,7 +6,7 @@ import {
   Title,
   SubTitle,
   Form,
-  Error,
+  Error as FieldError,
 } from "../styles/auth.styles";
 import { SiThemoviedatabase } from "react-icons/si";
 import { IconContext } from "react-icons";
@@ -17,6 +17,12 @@ import { Button } from "~/components/Button";
 import { auth } from "~/utils/firebase";
 import { createUserSession } from "~/utils/session.server";
 import { useActionData } from "@remix-run/react";
+import {
+  FormValidator,
+  FormValidatorErrors,
+  SignInValidator,
+} from "~/utils/validation";
+import { ZodError } from "zod";
 
 interface FormFields {
   email: string;
@@ -35,39 +41,58 @@ const badRequest = (data: ActionData) => {
 
 export const action: ActionFunction = async ({
   request,
-}): Promise<Response> => {
-  const form = await request.formData();
-  const email = form.get("email");
-  const password = form.get("password");
+}): Promise<Response | ActionData | void> => {
+  const { email, password } = Object.fromEntries(await request.formData());
 
   //type checking
   if (typeof email !== "string" || typeof password !== "string") {
     return badRequest({ formError: "Form not submited correctly" });
   }
-  // ZOD here!!!!
 
   try {
     const { user } = await auth.signInWithEmailAndPassword(email, password);
-    if (!user) {
-      return badRequest({
-        fields: { email, password },
-        formError: "Email/Password incorrect or user not exists!",
-      });
+
+    const userToken = await user?.getIdToken();
+    if (!userToken) {
+      throw new Error("Ocorreu um erro ao obter a chave de acesso do usuario");
     }
-    const userToken = await user.getIdToken();
     return createUserSession(userToken, "/home");
   } catch (error: any) {
-    console.log("ERROR", error.message);
-    return badRequest({
-      fields: { email, password },
-      fieldErrors: { email: "Verify email", password: "Verify password" },
-      formError: error.message,
-    });
+    switch (error.code) {
+      case "auth/wrong-password": {
+        return badRequest({
+          fields: { email, password },
+          fieldErrors: { password: "Senha incorreta" },
+        });
+      }
+      case "auth/invalid-email": {
+        return badRequest({
+          fields: { email, password },
+          fieldErrors: { email: "Email invalido" },
+        });
+      }
+
+      case "auth/user-disabled": {
+        return badRequest({
+          fields: { email, password },
+          fieldErrors: { email: "Usuario desabilitado" },
+        });
+      }
+      case "auth/user-not-found": {
+        return badRequest({
+          fields: { email, password },
+          fieldErrors: { email: "Usuario não encontrado" },
+        });
+      }
+      default:
+        throw new Error(`An error occurred ${error.message}`);
+    }
   }
 };
 
 export default function SignIn() {
   const actionData = useActionData<ActionData>();
+
   return (
     <Container>
       <IconContext.Provider value={{ style: { fontSize: 90 } }}>
@@ -90,7 +115,7 @@ export default function SignIn() {
             />
 
             {actionData?.fieldErrors?.email && (
-              <Error>{actionData?.fieldErrors?.email}</Error>
+              <FieldError>{actionData?.fieldErrors?.email}</FieldError>
             )}
             <FormInput
               placeholder="Senha"
@@ -103,7 +128,7 @@ export default function SignIn() {
               required
             />
             {actionData?.fieldErrors?.password && (
-              <Error>{actionData?.fieldErrors?.password}</Error>
+              <FieldError>{actionData?.fieldErrors?.password}</FieldError>
             )}
             <ButtonContainer>
               <Button type="submit" color="primary">
