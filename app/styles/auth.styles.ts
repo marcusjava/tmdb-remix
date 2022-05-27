@@ -64,3 +64,10 @@ export const Error = styled.p`
   font-weight: bold;
   color: #e72749;
 `;
+
+export const FormError = styled.p`
+  margin: 5px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #e72749;
+`;
