@@ -6,18 +6,29 @@ import {
   Title,
   SubTitle,
   Form,
-  Error,
+  Error as FieldError,
+  FormError,
 } from "../styles/auth.styles";
 import { SiThemoviedatabase } from "react-icons/si";
 import { IconContext } from "react-icons";
 import FormInput from "~/components/Input";
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
+import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Button } from "~/components/Button";
-import { auth, getCurrentUser, signUp } from "~/utils/firebase";
-import { useActionData } from "@remix-run/react";
+import {
+  auth,
+  createUserProfileDocument,
+  getCurrentUser,
+} from "~/utils/firebase";
+import { useActionData, useCatch } from "@remix-run/react";
 import { createUserSession } from "~/utils/session.server";
+import {
+  FormValidator,
+  FormValidatorErrors,
+  SignUpValidator,
+} from "~/utils/validation";
+import { ZodError } from "zod";
+import ErrorComponent from "~/components/Error";
 
 interface FormFields {
   name: string;
@@ -32,62 +43,93 @@ interface ActionData {
   fields?: Partial<FormFields>;
 }
 
-export const loader: LoaderFunction = async ({ params, request }) => {
-  return null;
-};
-
 const badRequest = (data: ActionData) => {
   return json(data, { status: 400 });
 };
 
 export const action: ActionFunction = async ({
   request,
-}): Promise<Response> => {
-  const form = await request.formData();
-  const name = form.get("name");
-  const email = form.get("email");
-  const password = form.get("password");
-  const password_confirm = form.get("password_confirm");
+}): Promise<Response | ActionData> => {
+  const { name, email, password, password_confirm } = Object.fromEntries(
+    await request.formData()
+  );
   if (
     typeof name !== "string" ||
     typeof email !== "string" ||
     typeof password !== "string" ||
     typeof password_confirm !== "string"
   ) {
-    return badRequest({ formError: "Form not submited correctly" });
+    return badRequest({ formError: "Formulario enviado incorretamente" });
   }
 
   if (password !== password_confirm) {
     return badRequest({
       fieldErrors: {
-        password: "Password mismatch",
-        password_confirm: "Password mismatch",
+        password: "Senha não confere",
+        password_confirm: "Senha não confere",
       },
     });
   }
   try {
+    const data = FormValidator(SignUpValidator, {
+      name,
+      email,
+      password,
+      password_confirm,
+    });
     await auth.signOut();
-    await signUp({ email, password, displayName: name });
-
+    const { user } = await auth.createUserWithEmailAndPassword(
+      data.email,
+      data.password
+    );
+    await auth.currentUser?.updateProfile({ displayName: name });
+    await createUserProfileDocument({ displayName: name }, user);
     const userToken = await auth.currentUser?.getIdToken();
 
     if (!userToken) {
-      return badRequest({ formError: "Error to get user token" });
+      throw new Error("Ocorreu um erro ao obter a chave de acesso do usuario");
     }
 
     return createUserSession(userToken, "/home");
   } catch (error: any) {
-    console.log("route", error.message);
+    if (error instanceof ZodError) {
+      return {
+        fields: { name, email, password, password_confirm },
+        fieldErrors: FormValidatorErrors(error),
+      };
+    }
 
-    return badRequest({
-      fieldErrors: {
-        email: "The email address is already in use by another account",
-      },
-    });
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        return badRequest({
+          fields: { name, email, password, password_confirm },
+          fieldErrors: { email: "Email em uso" },
+        });
+
+      case "auth/invalid-email":
+        return badRequest({
+          fields: { name, email, password, password_confirm },
+          fieldErrors: { email: "Email invalido" },
+        });
+      case "auth/operation-not-allowed":
+        return badRequest({
+          fields: { name, email, password, password_confirm },
+          formError:
+            "Ocorreu um erro ao criar o usuario entre em contato com o administrador",
+        });
+      case "auth/weak-password":
+        return badRequest({
+          fields: { name, email, password, password_confirm },
+          fieldErrors: {
+            password: "Senha fraca",
+            password_confirm: "Senha fraca",
+          },
+        });
+
+      default:
+        throw new Error(`An error occurred ${error.message}`);
+    }
   }
-  //REGISTER USER
-  //SET COOKIES
-  //REDIRECT TO HOME
 };
 
 export default function SignUp() {
@@ -113,7 +155,7 @@ export default function SignUp() {
               required
             />
             {actionData?.fieldErrors?.name && (
-              <Error>{actionData?.fieldErrors?.name}</Error>
+              <FieldError>{actionData?.fieldErrors?.name}</FieldError>
             )}
             <FormInput
               placeholder="Email"
@@ -126,7 +168,7 @@ export default function SignUp() {
               required
             />
             {actionData?.fieldErrors?.email && (
-              <Error>{actionData?.fieldErrors?.email}</Error>
+              <FieldError>{actionData?.fieldErrors?.email}</FieldError>
             )}
             <FormInput
               placeholder="Senha"
@@ -139,7 +181,7 @@ export default function SignUp() {
               required
             />
             {actionData?.fieldErrors?.password && (
-              <Error>{actionData?.fieldErrors?.password}</Error>
+              <FieldError>{actionData?.fieldErrors?.password}</FieldError>
             )}
             <FormInput
               placeholder="Confirmar Senha"
@@ -152,7 +194,9 @@ export default function SignUp() {
               required
             />
             {actionData?.fieldErrors?.password_confirm && (
-              <Error>{actionData?.fieldErrors?.password_confirm}</Error>
+              <FieldError>
+                {actionData?.fieldErrors?.password_confirm}
+              </FieldError>
             )}
             <ButtonContainer>
               <Button type="submit" color="primary">
@@ -160,9 +204,26 @@ export default function SignUp() {
               </Button>
               <Button color="primary">CANCELAR</Button>
             </ButtonContainer>
+            {actionData?.formError && (
+              <FormError>{actionData?.formError}</FormError>
+            )}
           </Form>
         </Card>
       </SignContainer>
     </Container>
   );
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  return <ErrorComponent message={error.message} />;
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  if (caught.status === 401) {
+    return (
+      <ErrorComponent message={caught.statusText} status={caught.status} />
+    );
+  }
 }

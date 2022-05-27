@@ -37,7 +37,10 @@ export const Header = ({ currentUser }: Props) => {
             </Form>
           </>
         ) : (
-          <ItemLink to="/home/signin">Entrar</ItemLink>
+          <>
+            <ItemLink to="/home/signup">Registrar</ItemLink>
+            <ItemLink to="/home/signin">Entrar</ItemLink>
+          </>
         )}
       </ItemsContainer>
     </Container>

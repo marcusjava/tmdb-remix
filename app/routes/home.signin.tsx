@@ -35,10 +35,6 @@ const badRequest = (data: ActionData) => {
   return json(data, { status: 400 });
 };
 
-export const loader: LoaderFunction = () => {
-  throw new Error("Error");
-};
-
 export const action: ActionFunction = async ({
   request,
 }): Promise<Response | ActionData | void> => {

@@ -9,11 +9,13 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useTransition,
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { auth, getCurrentUser } from "./utils/firebase";
+import { auth } from "./utils/firebase";
 import { getAccessToken } from "./utils/session.server";
+import Loader from "./components/Loader";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -62,6 +64,7 @@ function Document({ children }: any) {
 
 export function Layout({ children }: any) {
   const data = useLoaderData();
+  const transition = useTransition();
 
   return (
     /* 
@@ -71,6 +74,7 @@ export function Layout({ children }: any) {
     */
     <>
       <Header currentUser={data?.currentUser} />
+      {transition.state === "loading" ? <Loader /> : null}
       <main>{children}</main>
     </>
   );
