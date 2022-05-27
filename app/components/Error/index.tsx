@@ -1,22 +1,24 @@
 import { Link } from "@remix-run/react";
-import { ErrorContainer, ErrorMessage } from "./styles/error.styles";
+import { ErrorContainer, ErrorMessage, Card } from "./styles/error.styles";
 
 type Props = {
   message?: string;
-  redirectTo?: string;
+  status?: number;
 };
 
-export default function ErrorComponent({ message, redirectTo }: Props) {
+export default function ErrorComponent({ message, status }: Props) {
   return (
     <ErrorContainer>
-      {message ? (
-        <ErrorMessage>{message}</ErrorMessage>
-      ) : (
-        <ErrorMessage>
-          Ocorreu um Erro por gentileza entre am contato com o Administrador
-        </ErrorMessage>
-      )}
-      {redirectTo ? <Link to="..">Voltar</Link> : null}
+      <Card>
+        {status && <ErrorMessage>{status}</ErrorMessage>}
+        {message ? (
+          <ErrorMessage>{message}</ErrorMessage>
+        ) : (
+          <ErrorMessage>Ocorreu um erro</ErrorMessage>
+        )}
+
+        <Link to="..">Voltar</Link>
+      </Card>
     </ErrorContainer>
   );
 }

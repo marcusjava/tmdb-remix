@@ -18,6 +18,7 @@ import { Button } from "~/components/Button";
 import { auth } from "~/utils/firebase";
 import { createUserSession } from "~/utils/session.server";
 import { Link, useActionData, useCatch } from "@remix-run/react";
+import ErrorComponent from "~/components/Error";
 
 interface FormFields {
   email: string;
@@ -32,6 +33,10 @@ interface ActionData {
 
 const badRequest = (data: ActionData) => {
   return json(data, { status: 400 });
+};
+
+export const loader: LoaderFunction = () => {
+  throw new Error("Error");
 };
 
 export const action: ActionFunction = async ({
@@ -144,11 +149,7 @@ export default function SignIn() {
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
-  return (
-    <div className="error-container">
-      Something unexpected went wrong. Sorry about that.
-    </div>
-  );
+  return <ErrorComponent message={error.message} />;
 }
 
 export function CatchBoundary() {
@@ -156,10 +157,7 @@ export function CatchBoundary() {
 
   if (caught.status === 401) {
     return (
-      <div className="error-container">
-        <p>You must be logged in to create a joke.</p>
-        <Link to="/login">Login</Link>
-      </div>
+      <ErrorComponent message={caught.statusText} status={caught.status} />
     );
   }
 }
