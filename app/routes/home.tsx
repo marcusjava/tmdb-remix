@@ -5,6 +5,8 @@ import { getListMovies, randomBanner } from "~/utils/movies";
 import styled from "@emotion/styled";
 import { Category } from "~/components/Category";
 import { useLoaderData } from "@remix-run/react";
+import { Banner } from "~/components/Banner";
+import { Content } from "~/components/Banner/styles/banner.styles";
 
 const Container = styled.div`
   color: #fff;
@@ -43,6 +45,7 @@ export default function Home() {
     useLoaderData<LoaderData>();
   return (
     <Container>
+      <Banner imageSrc={banner?.poster_path} />
       <Category title="Populares" items={popularMovies} />
       <Category title="Em cartaz" items={nowMovies} />
       <Category title="Top Filmes" items={topRatedMovies} />
