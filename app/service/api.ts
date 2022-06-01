@@ -36,11 +36,17 @@ export const getMovieById = async (id: string) => {
   }
 };
 
-export const getMovies = async (): Promise<{
+export const getMovies = async (
+  request: Request
+): Promise<{
   nowData: Movie[];
   popularData: Movie[];
   topRatedData: Movie[];
 }> => {
+  /*  const sessionUser = await getUserSession(request);
+  if (!sessionUser) {
+    return redirect("/home/login");
+  } */
   const [nowData, popularData, topRatedData] = await Promise.all([
     api.get(`/movie/now_playing?api_key=${key}&language=pt-BR&page=1`),
     api.get(`/movie/popular?api_key=${key}&language=pt-BR&page=1`),

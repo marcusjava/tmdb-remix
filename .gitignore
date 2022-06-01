@@ -13,3 +13,5 @@ node_modules
 
 serviceAccount.json
 .serviceAccount.json
+
+firebase.config.json

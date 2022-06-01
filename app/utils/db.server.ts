@@ -1,10 +1,9 @@
 import admin from "firebase-admin";
-import firebase from "firebase/app";
 import {
   applicationDefault,
   initializeApp as initializeAdminApp,
 } from "firebase-admin/app";
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -16,12 +15,7 @@ import type { Movie, SignInProps, SignUpProps, User } from "./firebase.types";
 require("dotenv").config();
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: "moviedb-2ec85.firebaseapp.com",
-  projectId: "moviedb-2ec85",
-  storageBucket: "moviedb-2ec85.appspot.com",
-  messagingSenderId: "232551473309",
-  appId: "1:232551473309:web:338ecedc752df1b5947474",
+  ...require("../../firebase.config.json"),
 };
 
 let Firebase: any;

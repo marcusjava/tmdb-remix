@@ -49,8 +49,11 @@ export default function MovieDetail() {
   const firebaseLoading = false;
 
   const { movie } = useLoaderData<LoaderData>();
+  //backdrop_path
   return (
-    <Container>
+    <Container
+      imageUrl={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+    >
       <Thumbnail
         src={`https://image.tmdb.org/t/p/original${movie.poster_path}`}
         alt="banner"

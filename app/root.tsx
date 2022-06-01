@@ -1,8 +1,5 @@
-import type {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-} from "@remix-run/node";
+import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import { ActionFunction, redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Global } from "@emotion/react";
 import {
@@ -17,9 +14,8 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { getAccessToken, getUserSession } from "./utils/session.server";
+import { getUserSession } from "./utils/session.server";
 import Loader from "./components/Loader";
-import { adminAuth } from "./utils/db.server";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -69,8 +65,6 @@ function Document({ children }: any) {
 export function Layout({ children }: any) {
   const data = useLoaderData();
   const transition = useTransition();
-
-  console.log(data);
 
   return (
     /* 

@@ -1,10 +1,31 @@
 import styled from "@emotion/styled";
 
-export const Container = styled.div`
+type Props = {
+  imageUrl?: string;
+};
+
+export const Container = styled.div<Props>`
+  position: relative;
   display: flex;
   width: 100%;
   padding: 50px 0;
   gap: 50px;
+
+  &:before {
+    content: " ";
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.1;
+    background-image: url(${(props) => props.imageUrl});
+    background-repeat: no-repeat;
+    background-position: 50% 0;
+    background-size: cover;
+  }
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -14,11 +35,13 @@ export const Container = styled.div`
 export const DetailContainer = styled.div`
   padding: 25px 0;
   width: 70%;
+  z-index: 2;
 `;
 
 export const Thumbnail = styled.img`
   border-radius: 10px;
   width: 30%;
+  z-index: 2;
 `;
 
 export const TitleContainer = styled.div`

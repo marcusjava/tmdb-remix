@@ -18,7 +18,7 @@ export const GlobalStyles = css`
     font-size: 16px;
   }
   main {
-    padding: 0 50px;
+    padding: 0 25px;
     display: flex;
     justify-content: center;
     align-items: center;
