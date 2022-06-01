@@ -7,6 +7,7 @@ import {
   GenresContainer,
   TitleContainer,
   FavButton,
+  Tag,
 } from "../styles/detail.styles";
 import Star from "react-star-ratings";
 import { BsBookmark, BsFillBookmarkStarFill } from "react-icons/bs";
@@ -32,12 +33,10 @@ export const loader: LoaderFunction = async ({
   }
   try {
     const movie: Movie = await getMovieById(id);
-    console.log(movie);
 
     if (!movie) {
       throw new Error("Movie not found!");
     }
-
     return { movie };
   } catch (error: any) {
     throw new Error(error.message);
@@ -101,8 +100,7 @@ export default function MovieDetail() {
 
         <GenresContainer>
           {movie.genres?.map((item) => (
-            /*  <Tag key={item.id}>{item.name}</Tag> */
-            <p key={item.id}>{item.name}</p>
+            <Tag key={item.id}>{item.name}</Tag>
           ))}
         </GenresContainer>
       </DetailContainer>

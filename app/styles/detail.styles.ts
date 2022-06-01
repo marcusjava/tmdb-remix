@@ -47,4 +47,16 @@ export const Description = styled.h2`
 
 export const GenresContainer = styled.div`
   display: flex;
+  gap: 5px;
+`;
+
+export const Tag = styled.span`
+  display: inline-block;
+  min-width: 16px; /* pixel unit */
+  padding: 15px 30px; /* pixel unit */
+  border-radius: 15%;
+  font-size: 15px;
+  text-align: center;
+  background: #032541;
+  color: #fefefe;
 `;

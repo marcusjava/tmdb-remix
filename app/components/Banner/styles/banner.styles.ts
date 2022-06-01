@@ -54,6 +54,7 @@ export const SearchInput = styled.input`
   padding-left: 20px;
   width: 100%;
   outline: none;
+  border: none;
   height: 60px;
   border-radius: 25px;
   font-size: 25px;
@@ -68,7 +69,7 @@ export const SearchButton = styled.button`
   right: 0px;
   z-index: 2;
   border: none;
-  top: 2px;
+  top: 0.5px;
   height: 60px;
   cursor: pointer;
   color: white;

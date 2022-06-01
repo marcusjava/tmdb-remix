@@ -15,10 +15,10 @@ import FormInput from "~/components/Input";
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Button } from "~/components/Button";
-import { auth } from "~/utils/firebase";
 import { createUserSession } from "~/utils/session.server";
 import { Link, useActionData, useCatch } from "@remix-run/react";
 import ErrorComponent from "~/components/Error";
+import { signIn } from "~/utils/db.server";
 
 interface FormFields {
   email: string;
@@ -48,7 +48,7 @@ export const action: ActionFunction = async ({
   }
 
   try {
-    const { user } = await auth.signInWithEmailAndPassword(email, password);
+    const { user } = await signIn({ email, password });
 
     const userToken = await user?.getIdToken();
     if (!userToken) {

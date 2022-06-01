@@ -1,4 +1,6 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import { getSessionToken, signOutFirebase, adminAuth } from "~/utils/db.server";
+require("dotenv").config();
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
@@ -20,9 +22,10 @@ const storage = createCookieSessionStorage({
   },
 });
 
-export async function createUserSession(token: string, redirectTo: string) {
+async function createUserSession(idToken: string, redirectTo: string) {
   const session = await storage.getSession();
-  session.set("access-token", token);
+  const token = await getSessionToken(idToken);
+  session.set("token", token);
   return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
@@ -30,36 +33,39 @@ export async function createUserSession(token: string, redirectTo: string) {
   });
 }
 
-export async function logout(request: Request) {
-  const session = await getUserSession(request);
+async function destroySession(request: Request) {
+  const session = await storage.getSession(request.headers.get("Cookie"));
+
   return redirect("/home", {
-    headers: {
-      "Set-Cookie": await storage.destroySession(session),
-    },
+    headers: { "Set-Cookie": await storage.destroySession(session) },
   });
 }
 
-function getUserSession(request: Request) {
-  return storage.getSession(request.headers.get("Cookie"));
+async function signOut(request: Request) {
+  await signOutFirebase();
+  return await destroySession(request);
 }
 
-export async function getAccessToken(request: Request) {
+async function getUserSession(request: Request) {
+  const cookieSession = await storage.getSession(request.headers.get("Cookie"));
+  const token = cookieSession.get("token");
+  if (!token) return null;
+
+  try {
+    const tokenUser = await adminAuth.verifySessionCookie(token, true);
+    return tokenUser;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function getAccessToken(request: Request) {
   const session = await getUserSession(request);
-  const token = session.get("access-token");
+  console.log(session);
+  const token = session?.get("token");
+
   if (!token || typeof token !== "string") return null;
   return token;
 }
 
-export async function requireAccessToken(
-  request: Request,
-  redirectTo: string = new URL(request.url).pathname
-) {
-  const session = await getUserSession(request);
-  const userId = session.get("access-token");
-  if (!userId || typeof userId !== "string") {
-    console.log("user not logged!");
-    const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    throw redirect(`/login?${searchParams}`);
-  }
-  return userId;
-}
+export { createUserSession, signOut, getUserSession, getAccessToken };

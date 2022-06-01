@@ -1,3 +1,5 @@
+import { Form } from "@remix-run/react";
+import { useState } from "react";
 import {
   SearchButton,
   SearchContainer,
@@ -17,6 +19,7 @@ interface Props {
 }
 
 export const Banner = ({ imageSrc }: Props) => {
+  const [term, setTerm] = useState("");
   return (
     <Container>
       <Content>
@@ -32,8 +35,19 @@ export const Banner = ({ imageSrc }: Props) => {
           </SubTitle>
 
           <SearchContainer>
-            <SearchInput />
-            <SearchButton>Ir</SearchButton>
+            <Form
+              method="post"
+              action={`/home/movie/search/${term
+                .toLowerCase()
+                .replace(" ", "+")}`}
+            >
+              <SearchInput
+                name="search"
+                required
+                onChange={({ target }) => setTerm(target.value)}
+              />
+              <SearchButton type="submit">Ir</SearchButton>
+            </Form>
           </SearchContainer>
         </TextContainer>
       </Content>

@@ -1,79 +1,18 @@
-import firebase from "firebase";
-import "firebase/firestore";
-import "firebase/auth";
-import type { Movie, SignUpProps, User } from "./firebase.types";
-import bcrypt from "bcryptjs";
-
-const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: "moviedb-2ec85.firebaseapp.com",
-  projectId: "moviedb-2ec85",
-  storageBucket: "moviedb-2ec85.appspot.com",
-  messagingSenderId: "232551473309",
-  appId: "1:232551473309:web:338ecedc752df1b5947474",
-};
-
-console.log("INICIANDO FIREBASE");
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
-export const auth = firebase.auth();
-
-export const firestore = firebase.firestore();
-
-export const Firebase = firebase;
+import type { Movie, User } from "./firebase.types";
+import type { DocumentData } from "firebase/firestore";
+import { db } from "./db.server";
 
 const converter = <T>() => ({
-  toFirestore: (data: T) => data,
-  fromFirestore: (snap: firebase.firestore.QueryDocumentSnapshot) =>
+  toFirestore: (data: Partial<T>): DocumentData => data,
+  fromFirestore: (snap: FirebaseFirestore.QueryDocumentSnapshot) =>
     snap.data() as T,
 });
-
-export const createUserProfileDocument = async (
-  data: any,
-  user: User | null
-) => {
-  if (!user) return;
-
-  const userRef = firestore.doc(`users/${user.uid}`);
-  const snapshot = await userRef.get();
-  if (!snapshot.exists) {
-    //criando usuario
-    const { displayName, email } = user;
-    const createdAt = new Date();
-    try {
-      await userRef.set({
-        displayName,
-        email,
-        createdAt,
-        ...data,
-      });
-    } catch (error: any) {
-      console.log("error while creating user" + error.message);
-    }
-  }
-
-  return userRef;
-};
-
-export const getCurrentUser = () =>
-  new Promise((resolve, reject) => {
-    const unsubscribe = auth.onAuthStateChanged((userAuth) => {
-      unsubscribe();
-      resolve(userAuth);
-    }, reject);
-  });
-
-export const googleProvider = new firebase.auth.GoogleAuthProvider();
-
-googleProvider.setCustomParameters({ prompt: "select_account" });
-
-export const signInWithGoogle = () => auth.signInWithPopup(googleProvider);
 
 export const addCollectionDocs = async (
   collectionKey: string,
   objectToAdd: User | Movie
 ) => {
-  const collectionRef = firestore
+  const collectionRef = db
     .collection(collectionKey)
     .withConverter(converter<User | Movie>());
   const docRef = await collectionRef.add(objectToAdd);
@@ -83,9 +22,9 @@ export const addCollectionDocs = async (
 
 export const removeCollectionDocs = async (
   collectionKey: string,
-  id: string
+  id: number
 ) => {
-  const collectionRef = await firestore
+  const collectionRef = await db
     .collection(collectionKey)
     .where("id", "==", id)
     .get();
@@ -94,7 +33,7 @@ export const removeCollectionDocs = async (
 
 export const getMoviesDocs = async (userId: string) => {
   const movies: Movie[] = [];
-  const collectionRef = await firestore
+  const collectionRef = await db
     .collection("movies")
     .withConverter(converter<Movie>())
     .where("userId", "==", userId)
@@ -107,12 +46,13 @@ export const getMoviesDocs = async (userId: string) => {
   return movies;
 };
 
-export const signUp = async ({ email, password, displayName }: SignUpProps) => {
-  //const passwordHash = await bcrypt.hash(password, 10);
-  const { user } = await auth.createUserWithEmailAndPassword(email, password);
-  await auth.currentUser?.updateProfile({ displayName: displayName });
-  return await createUserProfileDocument({ displayName }, user);
-  //'auth/email-already-in-use'
+export const addFavoriteMovieToFirebase = async (
+  userId: number,
+  movie: Movie
+) => {
+  return await addCollectionDocs("movies", movie);
 };
 
-export default firebase;
+export const removeFavoriteMovieToFirebase = async (movieId: number) => {
+  return await removeCollectionDocs("movies", movieId);
+};

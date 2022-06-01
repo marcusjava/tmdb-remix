@@ -1,5 +1,6 @@
-import type { LoaderFunction } from "@remix-run/node";
-import { getMovies } from "~/service/api";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { getMovies, searchMovies } from "~/service/api";
 import type { Movie } from "~/utils/firebase.types";
 import { getListMovies, randomBanner } from "~/utils/movies";
 import styled from "@emotion/styled";
@@ -38,6 +39,18 @@ export const loader: LoaderFunction = async ({
     topRatedMovies: getListMovies(15, topRatedData),
     banner: randomBanner(getListMovies(15, nowData)),
   };
+};
+
+export const action: ActionFunction = async ({
+  request,
+}): Promise<Response> => {
+  const { search } = Object.fromEntries(await request.formData());
+
+  if (typeof search !== "string" || !search) {
+    throw new Error("Invalid data");
+  }
+
+  return redirect(`/home/movie/search/${search}`);
 };
 
 export default function Home() {

@@ -15,13 +15,9 @@ import FormInput from "~/components/Input";
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Button } from "~/components/Button";
-import {
-  auth,
-  createUserProfileDocument,
-  getCurrentUser,
-} from "~/utils/firebase";
+
 import { useActionData, useCatch } from "@remix-run/react";
-import { createUserSession } from "~/utils/session.server";
+import { createUserSession, signOut } from "~/utils/session.server";
 import {
   FormValidator,
   FormValidatorErrors,
@@ -29,6 +25,13 @@ import {
 } from "~/utils/validation";
 import { ZodError } from "zod";
 import ErrorComponent from "~/components/Error";
+import {
+  adminAuth,
+  createUserProfileDocument,
+  signOutFirebase,
+  signUp,
+} from "~/utils/db.server";
+import { updateProfile } from "firebase/auth";
 
 interface FormFields {
   name: string;
@@ -77,14 +80,17 @@ export const action: ActionFunction = async ({
       password,
       password_confirm,
     });
-    await auth.signOut();
-    const { user } = await auth.createUserWithEmailAndPassword(
-      data.email,
-      data.password
-    );
-    await auth.currentUser?.updateProfile({ displayName: name });
+    await signOut(request);
+    const { user } = await signUp({
+      email: data.email,
+      password: data.password,
+      displayName: data.name,
+    });
+
     await createUserProfileDocument({ displayName: name }, user);
-    const userToken = await auth.currentUser?.getIdToken();
+    await updateProfile(user, { displayName: name });
+
+    const userToken = await user.getIdToken();
 
     if (!userToken) {
       throw new Error("Ocorreu um erro ao obter a chave de acesso do usuario");

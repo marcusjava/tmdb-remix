@@ -1,4 +1,8 @@
-import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+} from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Global } from "@emotion/react";
 import {
@@ -13,9 +17,9 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { auth } from "./utils/firebase";
-import { getAccessToken } from "./utils/session.server";
+import { getAccessToken, getUserSession } from "./utils/session.server";
 import Loader from "./components/Loader";
+import { adminAuth } from "./utils/db.server";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -24,11 +28,10 @@ export const meta: MetaFunction = () => ({
 });
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const token = await getAccessToken(request);
+  const currentUser = await getUserSession(request);
 
-  if (!token) return null;
   return {
-    currentUser: auth.currentUser?.displayName,
+    currentUser: currentUser?.name,
   };
 };
 
@@ -51,6 +54,7 @@ function Document({ children }: any) {
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
+        {typeof document === "undefined" ? "__STYLES__" : null}
       </head>
       <body>
         {children}
@@ -65,6 +69,8 @@ function Document({ children }: any) {
 export function Layout({ children }: any) {
   const data = useLoaderData();
   const transition = useTransition();
+
+  console.log(data);
 
   return (
     /* 
