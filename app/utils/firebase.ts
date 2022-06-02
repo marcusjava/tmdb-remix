@@ -47,10 +47,10 @@ export const getMoviesDocs = async (userId: string) => {
 };
 
 export const addFavoriteMovieToFirebase = async (
-  userId: number,
+  userId: string,
   movie: Movie
 ) => {
-  return await addCollectionDocs("movies", movie);
+  return await addCollectionDocs("movies", { ...movie, userId: userId });
 };
 
 export const removeFavoriteMovieToFirebase = async (movieId: number) => {

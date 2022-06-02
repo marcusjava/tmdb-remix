@@ -15,7 +15,6 @@ export const GlobalStyles = css`
     -moz-osx-font-smoothing: grayscale;
     background-color: #141a29;
     color: #fff;
-    font-size: 16px;
   }
   main {
     padding: 0 25px;

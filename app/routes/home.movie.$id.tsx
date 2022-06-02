@@ -12,14 +12,22 @@ import {
 import Star from "react-star-ratings";
 import { BsBookmark, BsFillBookmarkStarFill } from "react-icons/bs";
 import { IconContext } from "react-icons";
-import type { LoaderFunction } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getMovieById } from "~/service/api";
 import type { Movie } from "~/utils/firebase.types";
-import { useLoaderData } from "@remix-run/react";
+import { Form, useFetcher, useLoaderData } from "@remix-run/react";
+import { getUserSession } from "~/utils/session.server";
+import {
+  addFavoriteMovieToFirebase,
+  getMoviesDocs,
+  removeFavoriteMovieToFirebase,
+} from "~/utils/firebase";
 
 interface LoaderData {
   movie: Movie;
+  currentUser: string | null;
+  favorite: boolean;
 }
 
 export const loader: LoaderFunction = async ({
@@ -28,27 +36,73 @@ export const loader: LoaderFunction = async ({
 }): Promise<LoaderData | Response> => {
   const { id } = params;
 
+  let favorites: Movie[] = [];
+  console.log("LOADING...........");
+
   if (!id) {
     return redirect("/home");
   }
   try {
+    const currentUser = await getUserSession(request);
+
+    const userId = currentUser?.user_id;
     const movie: Movie = await getMovieById(id);
 
     if (!movie) {
       throw new Error("Movie not found!");
     }
-    return { movie };
+
+    if (userId) {
+      favorites = await getMoviesDocs(userId);
+    }
+
+    return {
+      movie,
+      currentUser: userId,
+      favorite: Boolean(favorites.find((movie) => movie.userId === userId)),
+    };
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
 
-export default function MovieDetail() {
-  const currentUser = "Marcus";
-  const favorite = true;
-  const firebaseLoading = false;
+export const action: ActionFunction = async ({ request, params }) => {
+  const { id } = params;
 
-  const { movie } = useLoaderData<LoaderData>();
+  const currentUser = await getUserSession(request);
+  const userId = currentUser?.user_id;
+  if (!userId) {
+    return redirect(".");
+  }
+  if (typeof id !== "string") {
+    throw new Error("Form submitted incorrectly");
+  }
+  const movie: Movie = await getMovieById(id);
+  if (!movie) {
+    throw new Error("Movie not found!");
+  }
+  const favorites = await getMoviesDocs(userId);
+  const isFavorite = Boolean(
+    favorites.find((movie) => movie.userId === userId)
+  );
+
+  if (isFavorite) {
+    await removeFavoriteMovieToFirebase(+movie.id);
+    console.log("removido");
+  } else {
+    //add
+    await addFavoriteMovieToFirebase(userId, movie);
+    console.log("adicionado");
+  }
+
+  return redirect(`/home/movie/${id}`);
+};
+
+export default function MovieDetail() {
+  const { movie, currentUser, favorite } = useLoaderData<LoaderData>();
+
+  console.log(favorite);
+
   //backdrop_path
   return (
     <Container
@@ -62,34 +116,23 @@ export default function MovieDetail() {
         <TitleContainer>
           <Title data-testid="title">{movie.title}</Title>
           {currentUser && (
-            <FavButton
-              data-testid="favorite-button"
-              /*   onClick={() =>
-                favorite
-                  ? removeFavoriteFromFirebase(movie)
-                  : addFavoriteMovieToFirebase(movie)
-              } */
-            >
-              <IconContext.Provider
-                value={{ style: { color: "#fff", fontSize: 60 } }}
-              >
-                {/*   {firebaseLoading ? (
-                  <Loader
-                    type="Oval"
-                    color="#00BFFF"
-                    height={60}
-                    width={60}
-                    visible={firebaseLoading}
-                    data-testid="fav-loading"
+            <Form method="post">
+              <FavButton data-testid="favorite-button">
+                {favorite ? (
+                  <BsFillBookmarkStarFill
+                    data-testid="favorite-icon"
+                    size={60}
+                    style={{ fill: "white" }}
                   />
-                ) : favorite ? (
-                  <BsFillBookmarkStarFill data-testid="favorite-icon" />
                 ) : (
-                  <BsBookmark data-testid="not-favorite-icon" />
-                )} */}
-                <BsBookmark data-testid="not-favorite-icon" />
-              </IconContext.Provider>
-            </FavButton>
+                  <BsBookmark
+                    data-testid="not-favorite-icon"
+                    size={60}
+                    style={{ fill: "white" }}
+                  />
+                )}
+              </FavButton>
+            </Form>
           )}
         </TitleContainer>
         <Star

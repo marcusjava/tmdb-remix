@@ -31,6 +31,7 @@ if (!admin.apps.length)
   });
 
 const db = admin.firestore();
+//db.settings({ ignoreUndefinedProperties: true });
 const adminAuth = admin.auth();
 
 export const createUserProfileDocument = async (
