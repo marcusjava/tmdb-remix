@@ -1,6 +1,5 @@
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
-import { ActionFunction, redirect } from "@remix-run/node";
-import { json } from "@remix-run/node";
+
 import { Global } from "@emotion/react";
 import {
   Links,
@@ -88,7 +87,9 @@ export function Layout({ children }: any) {
     */
     <>
       <Header currentUser={data?.currentUser} />
-      {transition.state === "loading" ? <Loader /> : null}
+      {transition.state === "loading" || transition.state === "submitting" ? (
+        <Loader />
+      ) : null}
       <main>{children}</main>
     </>
   );

@@ -15,7 +15,7 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getMovieById } from "~/service/api";
 import type { Movie } from "~/utils/firebase.types";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData, useTransition } from "@remix-run/react";
 import { getUserSession } from "~/utils/session.server";
 import {
   addFavoriteMovieToFirebase,
@@ -115,7 +115,7 @@ export default function MovieDetail() {
           <Title data-testid="title">{movie.title}</Title>
           {currentUser && (
             <Form method="post">
-              <FavButton data-testid="favorite-button">
+              <FavButton data-testid="favorite-button" type="submit">
                 {favorite ? (
                   <BsFillBookmarkStarFill
                     data-testid="favorite-icon"
