@@ -1,6 +1,5 @@
 import { SiThemoviedatabase } from "react-icons/si";
 import { BsDoorClosedFill } from "react-icons/bs";
-import { IconContext } from "react-icons";
 import {
   Container,
   ItemLink,
@@ -9,6 +8,7 @@ import {
   Logout,
 } from "./styles/header";
 import { Form, Link } from "@remix-run/react";
+import Dropdown from "../Dropdown";
 
 type Props = {
   currentUser?: string;
@@ -17,11 +17,7 @@ export const Header = ({ currentUser }: Props) => {
   return (
     <Container>
       <Link to="/home">
-        <IconContext.Provider
-          value={{ style: { color: "#fff", fontSize: 60 } }}
-        >
-          <SiThemoviedatabase />
-        </IconContext.Provider>
+        <SiThemoviedatabase size={60} style={{ fill: "white" }} />
       </Link>
       <ItemsContainer>
         {currentUser ? (
@@ -30,11 +26,14 @@ export const Header = ({ currentUser }: Props) => {
             <ItemText>Seja bem vindo(a) {currentUser}</ItemText>
             <Form action="/home/logout" method="post">
               <Logout type="submit">
-                <IconContext.Provider value={{ style: { fontSize: 25 } }}>
-                  <BsDoorClosedFill data-testid="logout" />
-                </IconContext.Provider>
+                <BsDoorClosedFill
+                  data-testid="logout"
+                  size={25}
+                  style={{ fill: "white" }}
+                />
               </Logout>
             </Form>
+            <Dropdown />
           </>
         ) : (
           <>

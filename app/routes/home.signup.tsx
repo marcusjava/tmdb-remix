@@ -10,7 +10,6 @@ import {
   FormError,
 } from "../styles/auth.styles";
 import { SiThemoviedatabase } from "react-icons/si";
-import { IconContext } from "react-icons";
 import FormInput from "~/components/Input";
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -25,12 +24,7 @@ import {
 } from "~/utils/validation";
 import { ZodError } from "zod";
 import ErrorComponent from "~/components/Error";
-import {
-  adminAuth,
-  createUserProfileDocument,
-  signOutFirebase,
-  signUp,
-} from "~/utils/db.server";
+import { createUserProfileDocument, signUp } from "~/utils/db.server";
 import { updateProfile } from "firebase/auth";
 
 interface FormFields {
@@ -142,9 +136,8 @@ export default function SignUp() {
   const actionData = useActionData<ActionData>();
   return (
     <Container>
-      <IconContext.Provider value={{ style: { fontSize: 90 } }}>
-        <SiThemoviedatabase />
-      </IconContext.Provider>
+      <SiThemoviedatabase size={90} style={{ fill: "white" }} />
+
       <SignContainer>
         <Card>
           <Title>Não possuo uma conta</Title>

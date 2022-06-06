@@ -16,6 +16,8 @@ import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
 import { getUserSession } from "./utils/session.server";
 import Loader from "./components/Loader";
+import type { Movie } from "./utils/firebase.types";
+import { getMoviesDocs } from "./utils/firebase";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -23,11 +25,23 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
-export const loader: LoaderFunction = async ({ request }) => {
+type LoaderData = {
+  currentUser: string | null;
+  favorites: Movie[] | null;
+};
+
+export const loader: LoaderFunction = async ({
+  request,
+}): Promise<LoaderData> => {
   const currentUser = await getUserSession(request);
+  let favorites: Movie[] = [];
+  if (currentUser) {
+    favorites = await getMoviesDocs(currentUser.user_id);
+  }
 
   return {
     currentUser: currentUser?.name,
+    favorites,
   };
 };
 

@@ -11,12 +11,11 @@ import {
 } from "../styles/detail.styles";
 import Star from "react-star-ratings";
 import { BsBookmark, BsFillBookmarkStarFill } from "react-icons/bs";
-import { IconContext } from "react-icons";
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getMovieById } from "~/service/api";
 import type { Movie } from "~/utils/firebase.types";
-import { Form, useFetcher, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData } from "@remix-run/react";
 import { getUserSession } from "~/utils/session.server";
 import {
   addFavoriteMovieToFirebase,
@@ -37,9 +36,8 @@ export const loader: LoaderFunction = async ({
   const { id } = params;
 
   let favorites: Movie[] = [];
-  console.log("LOADING...........");
 
-  if (!id) {
+  if (!id || typeof id !== "string") {
     return redirect("/home");
   }
   try {
@@ -59,7 +57,9 @@ export const loader: LoaderFunction = async ({
     return {
       movie,
       currentUser: userId,
-      favorite: Boolean(favorites.find((movie) => movie.userId === userId)),
+      favorite: Boolean(
+        favorites.find((fav) => fav.userId === userId && fav.id === +id)
+      ),
     };
   } catch (error: any) {
     throw new Error(error.message);
@@ -82,15 +82,15 @@ export const action: ActionFunction = async ({ request, params }) => {
     throw new Error("Movie not found!");
   }
   const favorites = await getMoviesDocs(userId);
+
   const isFavorite = Boolean(
-    favorites.find((movie) => movie.userId === userId)
+    favorites.find((fav) => fav.userId === userId && fav.id === +id)
   );
 
   if (isFavorite) {
-    await removeFavoriteMovieToFirebase(+movie.id);
+    await removeFavoriteMovieToFirebase(movie.id);
     console.log("removido");
   } else {
-    //add
     await addFavoriteMovieToFirebase(userId, movie);
     console.log("adicionado");
   }
@@ -100,8 +100,6 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 export default function MovieDetail() {
   const { movie, currentUser, favorite } = useLoaderData<LoaderData>();
-
-  console.log(favorite);
 
   //backdrop_path
   return (

@@ -47,7 +47,7 @@ export const getMoviesDocs = async (userId: string) => {
 };
 
 export const addFavoriteMovieToFirebase = async (
-  userId: string,
+  userId: number,
   movie: Movie
 ) => {
   return await addCollectionDocs("movies", { ...movie, userId: userId });

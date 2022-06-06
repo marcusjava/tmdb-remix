@@ -93,9 +93,8 @@ export default function SignIn() {
 
   return (
     <Container>
-      <IconContext.Provider value={{ style: { fontSize: 90 } }}>
-        <SiThemoviedatabase />
-      </IconContext.Provider>
+      <SiThemoviedatabase size={90} style={{ fill: "white" }} />
+
       <SignContainer>
         <Card>
           <Title>Já possuo uma conta</Title>
