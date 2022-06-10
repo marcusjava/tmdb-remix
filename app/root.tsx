@@ -13,10 +13,10 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { getUserSession } from "./utils/session.server";
+import { getUserSession, isSessionValid } from "./utils/session.server";
 import Loader from "./components/Loader";
 import type { Movie } from "./utils/firebase.types";
-import { getMoviesDocs } from "./utils/firebase";
+import { getMoviesDocs } from "./utils/firebase.server";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -32,14 +32,15 @@ type LoaderData = {
 export const loader: LoaderFunction = async ({
   request,
 }): Promise<LoaderData> => {
-  const currentUser = await getUserSession(request);
+  const decodedClaims = await getUserSession(request);
+  console.info(decodedClaims);
   let favorites: Movie[] = [];
-  if (currentUser) {
-    favorites = await getMoviesDocs(currentUser.user_id);
+  if (decodedClaims) {
+    favorites = await getMoviesDocs(decodedClaims.user_id);
   }
 
   return {
-    currentUser: currentUser?.name,
+    currentUser: decodedClaims?.name,
     favorites,
   };
 };

@@ -15,13 +15,13 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getMovieById } from "~/service/api";
 import type { Movie } from "~/utils/firebase.types";
-import { Form, useLoaderData, useTransition } from "@remix-run/react";
+import { Form, useLoaderData } from "@remix-run/react";
 import { getUserSession } from "~/utils/session.server";
 import {
   addFavoriteMovieToFirebase,
   getMoviesDocs,
   removeFavoriteMovieToFirebase,
-} from "~/utils/firebase";
+} from "~/utils/firebase.server";
 
 interface LoaderData {
   movie: Movie;
@@ -41,9 +41,9 @@ export const loader: LoaderFunction = async ({
     return redirect("/home");
   }
   try {
-    const currentUser = await getUserSession(request);
+    const decodedClaims = await getUserSession(request);
 
-    const userId = currentUser?.user_id;
+    const userId = decodedClaims?.user_id;
     const movie: Movie = await getMovieById(id);
 
     if (!movie) {
@@ -69,8 +69,8 @@ export const loader: LoaderFunction = async ({
 export const action: ActionFunction = async ({ request, params }) => {
   const { id } = params;
 
-  const currentUser = await getUserSession(request);
-  const userId = currentUser?.user_id;
+  const decodedClaims = await getUserSession(request);
+  const userId = decodedClaims?.user_id;
   if (!userId) {
     return redirect(".");
   }

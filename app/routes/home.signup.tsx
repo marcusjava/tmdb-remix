@@ -12,11 +12,11 @@ import {
 import { SiThemoviedatabase } from "react-icons/si";
 import FormInput from "~/components/Input";
 import type { ActionFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { Button } from "~/components/Button";
 
 import { useActionData, useCatch } from "@remix-run/react";
-import { createUserSession, signOut } from "~/utils/session.server";
+import { sessionLogin, sessionLogout } from "~/utils/session.server";
 import {
   FormValidator,
   FormValidatorErrors,
@@ -24,8 +24,9 @@ import {
 } from "~/utils/validation";
 import { ZodError } from "zod";
 import ErrorComponent from "~/components/Error";
-import { createUserProfileDocument, signUp } from "~/utils/db.server";
-import { updateProfile } from "firebase/auth";
+import { createUserProfileDocument } from "~/utils/firebase.server";
+import { updateProfile, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "~/utils/firebase-service";
 
 interface FormFields {
   name: string;
@@ -74,23 +75,22 @@ export const action: ActionFunction = async ({
       password,
       password_confirm,
     });
-    await signOut(request);
-    const { user } = await signUp({
-      email: data.email,
-      password: data.password,
-      displayName: data.name,
-    });
-
+    await sessionLogout(request);
+    const { user } = await createUserWithEmailAndPassword(
+      auth,
+      data.email,
+      data.password
+    );
     await createUserProfileDocument({ displayName: name }, user);
     await updateProfile(user, { displayName: name });
 
-    const userToken = await user.getIdToken();
+    const token = await auth?.currentUser?.getIdToken();
 
-    if (!userToken) {
-      throw new Error("Ocorreu um erro ao obter a chave de acesso do usuario");
+    if (!token) {
+      throw new Error("Error ao tentar obter o token do usuario");
     }
 
-    return createUserSession(userToken, "/home");
+    return sessionLogin(request, token, "/home");
   } catch (error: any) {
     if (error instanceof ZodError) {
       return {
@@ -131,7 +131,6 @@ export const action: ActionFunction = async ({
     }
   }
 };
-
 export default function SignUp() {
   const actionData = useActionData<ActionData>();
   return (

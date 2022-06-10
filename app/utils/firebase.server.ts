@@ -1,6 +1,28 @@
+import * as admin from "firebase-admin";
 import type { Movie, User } from "./firebase.types";
 import type { DocumentData } from "firebase/firestore";
-import { db } from "./db.server";
+
+//SERVER!!!!!!!!
+
+import { getFirestore } from "firebase-admin/firestore";
+import type { Auth } from "firebase-admin/auth";
+import { getAuth } from "firebase-admin/auth";
+
+const serviceAccount = require("../../serviceAccount.json");
+
+let app;
+let auth: Auth;
+let db: admin.firestore.Firestore;
+let serverAdmin;
+
+if (!admin.apps.length) {
+  serverAdmin = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
+db = getFirestore();
+auth = getAuth();
 
 const converter = <T>() => ({
   toFirestore: (data: Partial<T>): DocumentData => data,
@@ -31,6 +53,33 @@ export const removeCollectionDocs = async (
   collectionRef.docs.forEach((doc) => doc.ref.delete());
 };
 
+export const createUserProfileDocument = async (
+  data: any,
+  user: User | null
+) => {
+  if (!user) return;
+
+  const userRef = db.doc(`users/${user.uid}`);
+  const snapshot = await userRef.get();
+  if (!snapshot.exists) {
+    //criando usuario
+    const { displayName, email } = user;
+    const createdAt = new Date();
+    try {
+      await userRef.set({
+        displayName,
+        email,
+        createdAt,
+        ...data,
+      });
+    } catch (error: any) {
+      console.log("error while creating user" + error.message);
+    }
+  }
+
+  return userRef;
+};
+
 export const getMoviesDocs = async (userId: string) => {
   const movies: Movie[] = [];
   const collectionRef = await db
@@ -56,3 +105,5 @@ export const addFavoriteMovieToFirebase = async (
 export const removeFavoriteMovieToFirebase = async (movieId: number) => {
   return await removeCollectionDocs("movies", movieId);
 };
+
+export { app, auth, db, serverAdmin };
