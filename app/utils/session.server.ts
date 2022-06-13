@@ -1,5 +1,6 @@
 import { createCookieSessionStorage, json, redirect } from "@remix-run/node";
 import * as admin from "firebase-admin";
+import { auth } from "./firebase.server";
 
 const serviceAccount = require("../../serviceAccount.json");
 
@@ -36,7 +37,10 @@ const storage = createCookieSessionStorage({
  * @param {*} param0
  * @returns
  */
-export const isSessionValid = async (request: Request, redirectTo: string) => {
+export const isSessionValid = async (
+  request: Request,
+  redirectTo: string = "/home/logout"
+) => {
   const session = await storage.getSession(request.headers.get("cookie"));
   try {
     // Verify the session cookie. In this case an additional check is added to detect
@@ -48,7 +52,9 @@ export const isSessionValid = async (request: Request, redirectTo: string) => {
   } catch (error: any) {
     // Session cookie is unavailable or invalid. Force user to login.
     // return { error: error?.message };
-    throw new Error(error.message);
+    throw redirect(redirectTo, {
+      statusText: error?.message,
+    });
   }
 };
 
@@ -65,9 +71,18 @@ export async function getUserSession(request: Request) {
   }
 }
 
+export async function getUserInfo(request: Request) {
+  const session = await storage.getSession(request.headers.get("cookie"));
+  const token = session.get("idToken");
+
+  if (!token) return null;
+  const decodedClaims = await admin
+    .auth()
+    .verifySessionCookie(token, true /** checkRevoked */);
+  return auth.getUser(decodedClaims.uid);
+}
 export async function getAccessToken(request: Request) {
   const session = await getUserSession(request);
-  console.log(session);
   const token = session?.get("idToken");
 
   if (!token || typeof token !== "string") return null;
@@ -106,10 +121,10 @@ const setCookieAndRedirect = async (
 export const sessionLogin = async (
   request: Request,
   idToken: string,
-  redirectTo: string
+  redirectTo: string,
+  displayName?: string
 ) => {
   const token = await admin.auth().verifyIdToken(idToken);
-  console.log("idtoken verified", token);
 
   return admin
     .auth()
@@ -156,32 +171,3 @@ export const sessionLogout = async (request: Request) => {
       return { error: error?.message };
     });
 };
-/* switch (error.code) {
-  case "auth/wrong-password": {
-    return badRequest({
-      fields: { email, password },
-      fieldErrors: { password: "Senha incorreta" },
-    });
-  }
-  case "auth/invalid-email": {
-    return badRequest({
-      fields: { email, password },
-      fieldErrors: { email: "Email invalido" },
-    });
-  }
-
-  case "auth/user-disabled": {
-    return badRequest({
-      fields: { email, password },
-      fieldErrors: { email: "Usuario desabilitado" },
-    });
-  }
-  case "auth/user-not-found": {
-    return badRequest({
-      fields: { email, password },
-      fieldErrors: { email: "Usuario não encontrado" },
-    });
-  }
-  default:
-    throw new Error(`An error occurred ${error.message}`);
-} */

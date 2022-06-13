@@ -1,4 +1,5 @@
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 
 import { Global } from "@emotion/react";
 import {
@@ -13,10 +14,14 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { getUserSession, isSessionValid } from "./utils/session.server";
+import {
+  getUserInfo,
+  getUserSession,
+  isSessionValid,
+} from "./utils/session.server";
 import Loader from "./components/Loader";
 import type { Movie } from "./utils/firebase.types";
-import { getMoviesDocs } from "./utils/firebase.server";
+import { auth, getMoviesDocs } from "./utils/firebase.server";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -25,22 +30,21 @@ export const meta: MetaFunction = () => ({
 });
 
 type LoaderData = {
-  currentUser: string | null;
+  currentUser?: string;
   favorites: Movie[] | null;
 };
 
 export const loader: LoaderFunction = async ({
   request,
-}): Promise<LoaderData> => {
-  const decodedClaims = await getUserSession(request);
-  console.info(decodedClaims);
+}): Promise<LoaderData | Response> => {
   let favorites: Movie[] = [];
-  if (decodedClaims) {
-    favorites = await getMoviesDocs(decodedClaims.user_id);
-  }
 
+  const user = await getUserInfo(request);
+  if (user) {
+    favorites = await getMoviesDocs(user?.uid);
+  }
   return {
-    currentUser: decodedClaims?.name,
+    currentUser: user?.displayName,
     favorites,
   };
 };

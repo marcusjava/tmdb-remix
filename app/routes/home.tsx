@@ -7,6 +7,9 @@ import styled from "@emotion/styled";
 import { Category } from "~/components/Category";
 import { useLoaderData } from "@remix-run/react";
 import { Banner } from "~/components/Banner";
+import { getUserInfo } from "~/utils/session.server";
+import type { UserRecord } from "firebase-admin/auth";
+import { getMoviesDocs } from "~/utils/firebase.server";
 
 const Container = styled.div`
   color: #fff;
@@ -18,21 +21,35 @@ const Container = styled.div`
   width: 80%;
 `;
 
-interface LoaderData {
+export interface LoaderHomeData {
   nowMovies: Movie[];
   popularMovies: Movie[];
   topRatedMovies: Movie[];
   banner: Movie;
+  currentUser: Partial<UserRecord>;
+  favorites: Movie[];
 }
 
 export const loader: LoaderFunction = async ({
   params,
   request,
-}): Promise<LoaderData> => {
+}): Promise<LoaderHomeData> => {
   //send to front MOVIE LIST
   const { nowData, popularData, topRatedData } = await getMovies(request);
+  let favorites: Movie[] = [];
+
+  //GET USER LOGGED
+  const user = await getUserInfo(request);
+  if (user) {
+    favorites = await getMoviesDocs(user.uid);
+  }
 
   return {
+    currentUser: {
+      uid: user?.uid,
+      displayName: user?.displayName,
+    },
+    favorites,
     nowMovies: getListMovies(15, nowData),
     popularMovies: getListMovies(5, popularData),
     topRatedMovies: getListMovies(15, topRatedData),
@@ -54,7 +71,7 @@ export const action: ActionFunction = async ({
 
 export default function Home() {
   const { nowMovies, popularMovies, topRatedMovies, banner } =
-    useLoaderData<LoaderData>();
+    useLoaderData<LoaderHomeData>();
   return (
     <Container>
       <Banner imageSrc={banner?.poster_path} />

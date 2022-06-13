@@ -54,18 +54,15 @@ export const action: ActionFunction = async ({
 
     return await sessionLogin(request, idToken, "/home");
   } catch (error) {
-    return json(
-      {
-        errorCode: "login/general",
-        errorMessage: "There was a problem loggin in",
-      },
-      { status: 500 }
-    );
+    return badRequest({
+      formError: "Ocorreu um erro ao criar a sessão do usuario",
+    });
   }
 };
 
 export default function SignIn() {
   const [fields, setFields] = useState({ email: "", password: "" });
+  const [fieldsError, setFieldsError] = useState({ email: "", password: "" });
   const actionData = useActionData<ActionData>();
   const fetcher = useFetcher();
 
@@ -76,22 +73,50 @@ export default function SignIn() {
         return;
       }
       await signOut(auth);
-      const authResp = await signInWithEmailAndPassword(auth, email, password);
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
 
       // if signin was successful then we have a user
-      if (authResp.user) {
+      if (user) {
         const idToken = await auth.currentUser?.getIdToken();
         if (idToken) {
           fetcher.submit({ idToken, authType: "email" }, { method: "post" });
         }
       }
-    } catch (err) {
-      console.log("signInWithEmail", err);
+    } catch (error: any) {
+      console.log("signInWithEmail", error);
+      switch (error.code) {
+        case "auth/wrong-password": {
+          return setFieldsError({
+            ...fieldsError,
+            password: "Senha inválida",
+          });
+        }
+        case "auth/invalid-email": {
+          return setFieldsError({
+            ...fieldsError,
+            email: "Email invalido",
+          });
+        }
+
+        case "auth/user-disabled": {
+          return setFieldsError({
+            ...fieldsError,
+            email: "Usuario desabilitado",
+          });
+        }
+        case "auth/user-not-found": {
+          return setFieldsError({
+            ...fieldsError,
+            email: "Usuario não localizado",
+          });
+        }
+        default:
+          console.log(`An error occurred ${error.message}`);
+      }
     }
   };
 
   const signInWithGoogle = () => {
-    //initializeApp(firebaseConfig);
     const auth = getAuth();
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
@@ -125,8 +150,8 @@ export default function SignIn() {
               type="email"
             />
 
-            {actionData?.fieldErrors?.email && (
-              <FieldError>{actionData?.fieldErrors?.email}</FieldError>
+            {fieldsError?.email && (
+              <FieldError>{fieldsError?.email}</FieldError>
             )}
             <FormInput
               placeholder="Senha"
@@ -135,14 +160,13 @@ export default function SignIn() {
               onChange={(e) =>
                 setFields({ ...fields, password: e.target.value })
               }
-              defaultValue={actionData?.fields?.password}
-              aria-invalid={Boolean(actionData?.fieldErrors?.password)}
+              aria-invalid={Boolean(fieldsError?.password)}
               autoComplete="none"
               name="password"
               type="password"
             />
-            {actionData?.fieldErrors?.password && (
-              <FieldError>{actionData?.fieldErrors?.password}</FieldError>
+            {fieldsError?.password && (
+              <FieldError>{fieldsError?.password}</FieldError>
             )}
             <ButtonContainer>
               <Button

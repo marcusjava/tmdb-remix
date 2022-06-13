@@ -24,7 +24,7 @@ export interface Movie {
   popularity: number;
   poster_path: string;
   release_date: string;
-  userId: number;
+  userId: string;
   video: boolean;
   vote_average: number;
   vote_count: number;

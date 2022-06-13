@@ -75,7 +75,7 @@ export const action: ActionFunction = async ({
       password,
       password_confirm,
     });
-    await sessionLogout(request);
+
     const { user } = await createUserWithEmailAndPassword(
       auth,
       data.email,
@@ -84,7 +84,7 @@ export const action: ActionFunction = async ({
     await createUserProfileDocument({ displayName: name }, user);
     await updateProfile(user, { displayName: name });
 
-    const token = await auth?.currentUser?.getIdToken();
+    const token = await user.getIdToken();
 
     if (!token) {
       throw new Error("Error ao tentar obter o token do usuario");

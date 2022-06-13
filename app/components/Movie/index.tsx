@@ -1,5 +1,4 @@
 import { Link } from "@remix-run/react";
-import { IconContext } from "react-icons";
 import { AiFillStar } from "react-icons/ai";
 import NoImage from "../../assets/no-image.png";
 import { BsBookmark, BsFillBookmarkStarFill } from "react-icons/bs";
@@ -16,11 +15,11 @@ import {
 
 interface Props {
   data: MovieI;
+  currentUser?: string;
+  isFavorite?: boolean;
 }
 
-export const Movie = ({ data }: Props) => {
-  const currentUser = "Marcus";
-  const favorite = false;
+export const Movie = ({ data, currentUser, isFavorite }: Props) => {
   const { id, title, poster_path, vote_average } = data;
   return (
     <Container>
@@ -35,29 +34,29 @@ export const Movie = ({ data }: Props) => {
         />
       </Link>
       <TitleContainer>
-        <Link to={`/movie/${id}`}>
+        <Link to={`/home/movie/${id}`}>
           <Title>{title}</Title>
         </Link>
         {currentUser && (
           <FavButton>
-            <IconContext.Provider
-              value={{ style: { color: "#FFF", fontSize: 25 } }}
-            >
-              {favorite ? (
-                <BsFillBookmarkStarFill data-testid="favorite-icon" />
-              ) : (
-                <BsBookmark data-testid="not-favorite-icon" />
-              )}
-            </IconContext.Provider>
+            {isFavorite ? (
+              <BsFillBookmarkStarFill
+                size={25}
+                data-testid="favorite-icon"
+                style={{ fill: "white" }}
+              />
+            ) : (
+              <BsBookmark
+                data-testid="not-favorite-icon"
+                size={25}
+                style={{ fill: "white" }}
+              />
+            )}
           </FavButton>
         )}
       </TitleContainer>
       <RatingContainer>
-        <IconContext.Provider
-          value={{ style: { color: "#E7A74E", fontSize: 30 } }}
-        >
-          <AiFillStar />
-        </IconContext.Provider>
+        <AiFillStar size={30} style={{ fill: "white" }} />
         <Rate>{vote_average}/10</Rate>
       </RatingContainer>
     </Container>
