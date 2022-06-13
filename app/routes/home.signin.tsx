@@ -18,7 +18,7 @@ import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Button } from "~/components/Button";
 import { sessionLogin } from "~/utils/session.server";
-import { useActionData, useCatch, useFetcher } from "@remix-run/react";
+import { Link, useActionData, useCatch, useFetcher } from "@remix-run/react";
 import ErrorComponent from "~/components/Error";
 import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
@@ -83,7 +83,6 @@ export default function SignIn() {
         }
       }
     } catch (error: any) {
-      console.log("signInWithEmail", error);
       switch (error.code) {
         case "auth/wrong-password": {
           return setFieldsError({
@@ -186,6 +185,9 @@ export default function SignIn() {
               <FormError>{actionData?.formError}</FormError>
             )}
           </Form>
+          <SubTitle>
+            Esqueceu a Senha? <Link to="/home/signin/forgot">Clique aqui</Link>
+          </SubTitle>
         </Card>
       </SignContainer>
     </Container>
