@@ -1,60 +1,45 @@
-<img src="app/assets/tmdb-remix1.gif" width=400 height=200/><img src="app/assets/tmdb-remix1.gif" width=400 height=200/><img src="app/assets/tmdb-remix1.gif" width=400 height=200/>
+<img src="app/assets/tmdb-remix1.gif" width=400 height=200/><img src="app/assets/tmdb-remix2.gif" width=400 height=200/><img src="app/assets/tmdb-remix3.gif" width=400 height=200/>
 
 # Welcome to Remix The Movie Database App!
 
+- [DEMO](https://remix-vercel-tmdb-rjb8vmp38-marcusjava.vercel.app/home)
+
 - [Remix Docs](https://remix.run/docs)
 
-## Development
+## Tecnologias utilizadas
 
-From your terminal:
+- Remix Run
+- Firebase (Admin e Auth)
+- Emotion
+- Typescript
+
+## Instruções de Instalação
+
+1 - Clonar repositorio
+
+`https://github.com/marcusjava/tmdb-remix`
+
+2 - Criar projeto no [firebase](https://console.firebase.google.com/) e salvar as configurações no arquivo firebase.config.json na raiz da projeto
+
+3 - Configurar o firebase-admin gerando arquivo de chave privada.
+
+    - No console do firebase, abra <strong>Configurações</strong> >>> [Contas de Serviço](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk)
+    - Clique em Gerar nova chave privada e selecione Gerar chave para confirmar.
+    - Salvar com nome serviceAccount.json na raiz do projeto.
+
+4 - Criar conta e obter chave de acesso à API do [TMDB](https://www.themoviedb.org)
+
+    - Após efetuar login ir em CONFIGURAÇÕES >>> API e copiar a Chave da API (v3 auth)
+
+5 - Criar arquivo .env com as seguintes variaveis
+
+REACT_APP_MOVIEDB_API_KEY - Chave da API (v3 auth)
+GOOGLE_APPLICATION_CREDENTIALS - caminho do arquivo serviceAccount.json Ex. "./serviceAccount.json"
+SESSION_SECRET - palavra secreta para gerar o cookie de sessão
+
+6 - Executar no terminal
 
 ```sh
 npm install
-npx prisma init --datasource-provider sqlite
-npx prisma db push
 npm run dev
-```
-
-https://remix-vercel-tmdb-rjb8vmp38-marcusjava.vercel.app/home
-
-This starts your app in development mode, rebuilding assets on file changes.
-
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `remix build`
-
-- `build/`
-- `public/build/`
-
-### Using a Template
-
-When you ran `npx create-remix@latest` there were a few choices for hosting. You can run that again to create a new project, then copy over your `app/` folder to the new project that's pre-configured for your target server.
-
-```sh
-cd ..
-# create a new project, and pick a pre-configured host
-npx create-remix@latest
-cd my-new-remix-app
-# remove the new project's app (not the old one!)
-rm -rf app
-# copy your app over
-cp -R ../my-old-remix-app/app app
 ```
