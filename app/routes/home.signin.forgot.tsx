@@ -10,13 +10,14 @@ import {
   FormError,
 } from "../styles/auth.styles";
 import FormInput from "~/components/Input";
-import { json, redirect } from "@remix-run/node";
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import type { ActionFunction } from "@remix-run/node";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { SiThemoviedatabase } from "react-icons/si";
-import { Link, useActionData } from "@remix-run/react";
+import { Link, useActionData, useCatch } from "@remix-run/react";
 import { auth } from "~/utils/firebase-service";
 import { Button } from "~/components/Button";
+import ErrorComponent from "~/components/Error";
 
 interface FormFields {
   email: string;
@@ -64,7 +65,7 @@ export const action: ActionFunction = async ({
       }
 
       default:
-        console.log(`An error occurred ${error.message}`);
+        throw new Error(`Um erro ocorreu - ${error.message}`);
     }
   }
 
@@ -122,4 +123,18 @@ export default function ForgotPassword() {
       </SignContainer>
     </Container>
   );
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  return <ErrorComponent message={error.message} />;
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  if (caught.status === 401) {
+    return (
+      <ErrorComponent message={caught.statusText} status={caught.status} />
+    );
+  }
 }

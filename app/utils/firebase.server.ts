@@ -73,7 +73,7 @@ export const createUserProfileDocument = async (
         ...data,
       });
     } catch (error: any) {
-      console.log("error while creating user" + error.message);
+      throw new Error("error while creating user" + error.message);
     }
   }
 
@@ -96,7 +96,7 @@ export const getMoviesDocs = async (userId: string) => {
 };
 
 export const addFavoriteMovieToFirebase = async (
-  userId: number,
+  userId: string,
   movie: Movie
 ) => {
   return await addCollectionDocs("movies", { ...movie, userId: userId });

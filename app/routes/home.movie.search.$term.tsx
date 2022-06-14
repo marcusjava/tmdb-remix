@@ -20,32 +20,24 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({
   params,
-  request,
 }): Promise<LoaderData> => {
   const { term } = params;
 
   if (typeof term !== "string" || !term) {
     throw new Error("Invalid data");
   }
-
-  const movies = await searchMovies(term);
-
-  return { movies };
+  return { movies: await searchMovies(term) };
 };
 
 export const action: ActionFunction = async ({
   params,
-  request,
 }): Promise<LoaderData> => {
   const { term } = params;
 
   if (typeof term !== "string" || !term) {
     throw new Error("Invalid data");
   }
-
-  const movies = await searchMovies(term);
-
-  return { movies };
+  return { movies: await searchMovies(term) };
 };
 
 export default function Search() {

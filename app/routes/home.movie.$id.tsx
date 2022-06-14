@@ -66,7 +66,10 @@ export const loader: LoaderFunction = async ({
   }
 };
 
-export const action: ActionFunction = async ({ request, params }) => {
+export const action: ActionFunction = async ({
+  request,
+  params,
+}): Promise<Response> => {
   const { id } = params;
 
   const decodedClaims = await getUserSession(request);
@@ -89,10 +92,8 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   if (isFavorite) {
     await removeFavoriteMovieToFirebase(movie.id);
-    console.log("removido");
   } else {
     await addFavoriteMovieToFirebase(userId, movie);
-    console.log("adicionado");
   }
 
   return redirect(`/home/movie/${id}`);

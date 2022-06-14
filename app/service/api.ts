@@ -18,7 +18,7 @@ export const searchMovies = async (term: string) => {
 
     return response.data.results;
   } catch (error: any) {
-    console.log(error.message);
+    throw new Error(`Um erro ocorreu ao buscar o filme - ${error.message}`);
   }
 };
 
@@ -32,7 +32,7 @@ export const getMovieById = async (id: string) => {
     });
     return response.data;
   } catch (error: any) {
-    console.log(error.mesage);
+    throw new Error(`Ocorreu um erro ao obter o filme - ${error.message}`);
   }
 };
 

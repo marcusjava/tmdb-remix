@@ -166,7 +166,6 @@ export const sessionLogout = async (request: Request) => {
       });
     })
     .catch((error) => {
-      console.log(error);
       // Session cookie is unavailable or invalid. Force user to login.
       return { error: error?.message };
     });

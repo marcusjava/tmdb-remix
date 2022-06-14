@@ -1,5 +1,4 @@
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
 
 import { Global } from "@emotion/react";
 import {
@@ -14,14 +13,10 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import {
-  getUserInfo,
-  getUserSession,
-  isSessionValid,
-} from "./utils/session.server";
+import { getUserInfo } from "./utils/session.server";
 import Loader from "./components/Loader";
 import type { Movie } from "./utils/firebase.types";
-import { auth, getMoviesDocs } from "./utils/firebase.server";
+import { getMoviesDocs } from "./utils/firebase.server";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
