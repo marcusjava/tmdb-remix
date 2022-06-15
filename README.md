@@ -9,7 +9,8 @@
 ## Tecnologias utilizadas
 
 - Remix Run
-- Firebase (Admin e Auth)
+- Firebase Admin(Server)
+- Firebase Auth(Frontend)
 - Emotion
 - Typescript
 

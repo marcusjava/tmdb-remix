@@ -25,7 +25,7 @@ const storage = createCookieSessionStorage({
     secrets: [sessionSecret],
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 5 * 1000,
     httpOnly: true,
   },
 });
@@ -39,7 +39,7 @@ const storage = createCookieSessionStorage({
  */
 export const isSessionValid = async (
   request: Request,
-  redirectTo: string = "/home/logout"
+  redirectTo: string = "/home"
 ) => {
   const session = await storage.getSession(request.headers.get("cookie"));
   try {
@@ -52,6 +52,7 @@ export const isSessionValid = async (
   } catch (error: any) {
     // Session cookie is unavailable or invalid. Force user to login.
     // return { error: error?.message };
+
     throw redirect(redirectTo, {
       statusText: error?.message,
     });
@@ -61,6 +62,7 @@ export const isSessionValid = async (
 export async function getUserSession(request: Request) {
   const cookieSession = await storage.getSession(request.headers.get("Cookie"));
   const token = cookieSession.get("idToken");
+
   if (!token) return null;
 
   try {
@@ -76,21 +78,22 @@ export async function getUserInfo(request: Request) {
   const token = session.get("idToken");
 
   if (!token) return null;
-  const decodedClaims = await admin
+
+  const decoded = await admin
     .auth()
     .verifySessionCookie(token, true /** checkRevoked */);
-  return auth.getUser(decodedClaims.uid);
+
+  return admin.auth().getUser(decoded.uid);
 }
 export async function getAccessToken(request: Request) {
-  const session = await getUserSession(request);
-  const token = session?.get("idToken");
+  const token = await getUserSession(request);
 
-  if (!token || typeof token !== "string") return null;
   return token;
 }
 
 /**
  * set the cookie on the header and redirect to the specified route
+ *
  *
  * @param {*} sessionCookie
  * @param {*} redirectTo
@@ -103,6 +106,7 @@ const setCookieAndRedirect = async (
 ) => {
   const session = await storage.getSession(request.headers.get("cookie"));
   session.set("idToken", sessionCookie);
+
   return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
@@ -167,6 +171,6 @@ export const sessionLogout = async (request: Request) => {
     })
     .catch((error) => {
       // Session cookie is unavailable or invalid. Force user to login.
-      return { error: error?.message };
+      throw new Error(error.message);
     });
 };

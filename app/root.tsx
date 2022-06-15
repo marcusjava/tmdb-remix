@@ -13,7 +13,11 @@ import {
 } from "@remix-run/react";
 import { GlobalStyles } from "./global.styles";
 import { Header } from "./components/Header";
-import { getUserInfo } from "./utils/session.server";
+import {
+  getAccessToken,
+  getUserInfo,
+  sessionLogout,
+} from "./utils/session.server";
 import Loader from "./components/Loader";
 import type { Movie } from "./utils/firebase.types";
 import { getMoviesDocs } from "./utils/firebase.server";
@@ -34,14 +38,26 @@ export const loader: LoaderFunction = async ({
 }): Promise<LoaderData | Response> => {
   let favorites: Movie[] = [];
 
-  const user = await getUserInfo(request);
-  if (user) {
-    favorites = await getMoviesDocs(user?.uid);
+  try {
+    const user = await getUserInfo(request);
+
+    console.log(user);
+
+    if (user) {
+      favorites = await getMoviesDocs(user.uid);
+    }
+    return {
+      currentUser: user?.displayName,
+      favorites,
+    };
+  } catch (error: any) {
+    if (error.code === "auth/session-cookie-revoked") {
+      return sessionLogout(request);
+    }
+    throw new Error(
+      `Erro ao verificar a sessão do usuario logado! - ${error.message}`
+    );
   }
-  return {
-    currentUser: user?.displayName,
-    favorites,
-  };
 };
 
 export default function App() {
