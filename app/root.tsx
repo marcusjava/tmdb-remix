@@ -41,8 +41,6 @@ export const loader: LoaderFunction = async ({
   try {
     const user = await getUserInfo(request);
 
-    console.log(user);
-
     if (user) {
       favorites = await getMoviesDocs(user.uid);
     }
